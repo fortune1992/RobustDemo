@@ -1,0 +1,11 @@
+<component name="libraryTable">
+  <library name="Gradle: com.meituan.robust:autopatchbase:0.4.99">
+    <CLASSES>
+      <root url="jar://$USER_HOME$/.gradle/caches/modules-2/files-2.1/com.meituan.robust/autopatchbase/0.4.99/9e6cf5e3a299883bffae6cc2fb587be62f1e7193/autopatchbase-0.4.99.jar!/" />
+    </CLASSES>
+    <JAVADOC />
+    <SOURCES>
+      <root url="jar://$USER_HOME$/.gradle/caches/modules-2/files-2.1/com.meituan.robust/autopatchbase/0.4.99/b5929b552649ec69f6e6daa0c9b2566f5ee2f3a3/autopatchbase-0.4.99-sources.jar!/" />
+    </SOURCES>
+  </library>
+</component>
