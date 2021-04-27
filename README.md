@@ -1,5 +1,5 @@
 # hotFixALL
-整理thinker,robust热修复使用方法和原理
+整理tinker,robust热修复使用方法和原理
 
 还有一个andfix已经维护了，不去研究了直接给出大致的原理
 
