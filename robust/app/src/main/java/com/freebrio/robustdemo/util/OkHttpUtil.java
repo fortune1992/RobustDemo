@@ -1,15 +1,12 @@
-package com.bikan.base.utils;
+package com.freebrio.robustdemo.util;
 
 import android.os.Build;
 import android.text.TextUtils;
 import android.util.Log;
 
-import com.bikan.base.BuildConfig;
-import com.bikan.base.SystemInfo;
-import com.sankuai.waimai.router.Router;
-import com.xiaomi.bn.utils.coreutils.PackageUtils;
+import com.freebrio.robustdemo.BuildConfig;
+import com.freebrio.robustdemo.MyApplication;
 
-import java.util.List;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.RejectedExecutionHandler;
 import java.util.concurrent.SynchronousQueue;
@@ -21,13 +18,12 @@ import okhttp3.Interceptor;
 import okhttp3.OkHttpClient;
 import okhttp3.Request;
 import okhttp3.internal.Util;
-import okhttp3.logging.HttpLoggingInterceptor;
 
 public class OkHttpUtil {
     private static final String TAG = "OkHttpUtil";
-    private OkHttpClient mClient;
+    private final OkHttpClient mClient;
     private String userAgent = "";
-    private ExecutorService mExecutorService;
+    private final ExecutorService mExecutorService;
 
     public static OkHttpUtil getInstance() {
         return OkHttpUtilHolder.INSTANCE;
@@ -35,20 +31,23 @@ public class OkHttpUtil {
 
     private OkHttpUtil() {
         OkHttpClient.Builder clientBuilder = new OkHttpClient.Builder();
-        List<IDefaultHttpClientInterceptor> interceptors = Router.getAllServices(IDefaultHttpClientInterceptor.class);
-        if (interceptors != null && interceptors.size() > 0) {
-            for (IDefaultHttpClientInterceptor interceptor : interceptors) {
-                Interceptor realInterceptor = interceptor.getDefaultInterceptor();
-                if (realInterceptor != null) {
-                    clientBuilder.addInterceptor(realInterceptor);
-                }
-            }
-        }
-        HttpLoggingInterceptor httpLoggingInterceptor = new HttpLoggingInterceptor();
-        httpLoggingInterceptor.setLevel(SystemInfo.isDebugMode() ? HttpLoggingInterceptor.Level.BODY
-                : HttpLoggingInterceptor.Level.NONE);
+//        List<IDefaultHttpClientInterceptor> interceptors = Router.getAllServices(IDefaultHttpClientInterceptor.class);
+//        if (interceptors != null && interceptors.size() > 0) {
+//            for (IDefaultHttpClientInterceptor interceptor : interceptors) {
+//                Interceptor realInterceptor = interceptor.getDefaultInterceptor();
+//                if (realInterceptor != null) {
+//                    clientBuilder.addInterceptor(realInterceptor);
+//                }
+//            }
+//        }
+//        HttpLoggingInterceptor httpLoggingInterceptor = new HttpLoggingInterceptor();
+//        httpLoggingInterceptor.setLevel(SystemInfo.isDebugMode() ? HttpLoggingInterceptor.Level.BODY
+//                : HttpLoggingInterceptor.Level.NONE);
+        mExecutorService = new ThreadPoolExecutor(0, 128, 60, TimeUnit.SECONDS,
+                new SynchronousQueue<>(), Util.threadFactory("OkHttp Dispatcher", false),
+                new DiscardNewPolicy());
         mClient = clientBuilder
-                .addNetworkInterceptor(httpLoggingInterceptor)
+//                .addNetworkInterceptor(httpLoggingInterceptor)
                 .addInterceptor(chain -> {
                     Request request = chain.request()
                             .newBuilder()
@@ -59,9 +58,6 @@ public class OkHttpUtil {
                 })
                 .dispatcher(new Dispatcher(getLimitedMaxPoolSizeExecutor()))
                 .build();
-        mExecutorService = new ThreadPoolExecutor(0, 128, 60, TimeUnit.SECONDS,
-                new SynchronousQueue<>(), Util.threadFactory("OkHttp Dispatcher", false),
-                new DiscardNewPolicy());
     }
 
     public OkHttpClient getDefaultOkHttpClient() {
@@ -70,16 +66,13 @@ public class OkHttpUtil {
 
     public String getUserAgent() {
         if (TextUtils.isEmpty(userAgent)) {
-            StringBuilder builder = new StringBuilder(PackageUtils.getPackageName());
-            builder.append("/")
-                    .append(BuildConfig.VERSION_NAME)
-                    .append("(Linux; ")
-                    .append("Android " + Build.VERSION.SDK_INT + ";")
-                    .append(Build.MANUFACTURER + ";")
-                    .append(Build.MODEL + ";")
-                    .append("miuiVersion " + (MiuiEnvUtil.isMiui() ? Build.VERSION.INCREMENTAL : ""))
-                    .append(")");
-            userAgent = builder.toString();
+            userAgent = MyApplication.getContext().getPackageName() + "/" +
+                    BuildConfig.VERSION_NAME +
+                    "(Linux; " +
+                    "Android " + Build.VERSION.SDK_INT + ";" +
+                    Build.MANUFACTURER + ";" +
+                    Build.MODEL + ";" +
+                    ")";
         }
         return userAgent;
     }

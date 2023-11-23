@@ -22,3 +22,13 @@
 -keepclassmembers class **{
 public static com.meituan.robust.ChangeQuickRedirect *;
 }
+
+#-keep @interface <packagename>.Keep
+#-keep @interface <packagename>.KeepAll
+#
+#-keepclassmembers class * {
+#  @<packagename>.Keep <methods>;
+#  @<packagename>.Keep <fields>;
+#}
+#-keep @<packagename>.Keep class *
+#-keep @<packagename>.KeepAll class * { *; }

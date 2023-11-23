@@ -1,20 +1,13 @@
-package com.bikan.base.net;
+package com.freebrio.robustdemo.network;
 
 import android.net.Uri;
 import android.text.TextUtils;
 import android.util.Pair;
 
-import com.bikan.base.SystemInfo;
-import com.bikan.base.dns.GlobalDns;
-import com.bikan.base.utils.DeviceWrapperUtils;
-import com.bikan.base.utils.OkHttpUtil;
-import com.sankuai.waimai.router.Router;
-import com.xiaomi.bn.utils.encrypt.MD5Utils;
-import com.xiaomi.bn.utils.logger.Logger;
+import com.freebrio.robustdemo.util.OkHttpUtil;
 
 import java.io.IOException;
 import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
@@ -30,7 +23,6 @@ import okhttp3.OkHttpClient;
 import okhttp3.Request;
 import okhttp3.RequestBody;
 import okhttp3.Response;
-import okhttp3.logging.HttpLoggingInterceptor;
 import retrofit2.Retrofit;
 import retrofit2.adapter.rxjava2.RxJava2CallAdapterFactory;
 import retrofit2.converter.gson.GsonConverterFactory;
@@ -48,13 +40,13 @@ public class RetrofitAdapter {
         synchronized (LOCK) {
             int type = apiClass.hashCode();
             if (SERVICE_INFO_MAP.get(type) == null) {
-                putIfAbsent(SERVICE_INFO_MAP, type, () -> serviceInfo.newInstance());
+                putIfAbsent(SERVICE_INFO_MAP, type, serviceInfo::newInstance);
             }
             if (SERVICE_MAP.get(type) == null) {
                 putIfAbsent(SERVICE_MAP, type, HashMap::new);
             }
             if (SERVICE_MAP.get(type).get(apiClass) == null) {
-                putIfAbsent(SERVICE_MAP.get(type), apiClass, () -> RetrofitAdapter.createService(apiClass));
+                putIfAbsent(Objects.requireNonNull(SERVICE_MAP.get(type)), apiClass, () -> RetrofitAdapter.createService(apiClass));
             }
             return (T) SERVICE_MAP.get(type).get(apiClass);
         }
@@ -98,31 +90,13 @@ public class RetrofitAdapter {
         }));
         clientBuilder.connectTimeout(Constants.CONNECT_TIMEOUT_MILLIS, TimeUnit.SECONDS);
         clientBuilder.readTimeout(Constants.READ_TIMEOUT_MILLIS, TimeUnit.SECONDS);
-        clientBuilder.cookieJar(LoginCookie.getInstance());
         clientBuilder.dispatcher(new Dispatcher(OkHttpUtil.getInstance().getLimitedMaxPoolSizeExecutor()));
-        HttpLoggingInterceptor httpLoggingInterceptor = new HttpLoggingInterceptor();
-        httpLoggingInterceptor.setLevel(SystemInfo.isDebugMode() ? HttpLoggingInterceptor.Level.BODY
-                : HttpLoggingInterceptor.Level.NONE);
-        clientBuilder.addNetworkInterceptor(httpLoggingInterceptor);
-
-        List<IRetrofitInterceptor> interceptors = Router.getAllServices(IRetrofitInterceptor.class);
-        if (interceptors != null && interceptors.size() > 0) {
-            for (IRetrofitInterceptor interceptor : interceptors) {
-                Interceptor realInterceptor = interceptor.getInterceptor();
-                if (realInterceptor != null) {
-                    clientBuilder.addInterceptor(realInterceptor);
-                }
-            }
-        }
 
         Interceptor interceptor = getServiceInfo(apiClass).getInterceptor();
         if (interceptor != null) {
             clientBuilder.addInterceptor(interceptor);
         }
 
-        NewsLoggingInterceptor newsLoggingInterceptor = new NewsLoggingInterceptor(Logger::wtf);
-        newsLoggingInterceptor.setLevel(NewsLoggingInterceptor.Level.BODY);
-        clientBuilder.addInterceptor(newsLoggingInterceptor);
         clientBuilder.addInterceptor(chain -> appendFormBody(apiClass, chain));
         // clientBuilder.addInterceptor(RetrofitAdapter::checkImeiOrOaid);
         clientBuilder.addInterceptor(chain ->
@@ -145,7 +119,6 @@ public class RetrofitAdapter {
             return chain.proceed(request);
         });
 
-        clientBuilder.dns(new GlobalDns());
         addDispatcher(clientBuilder, apiClass);
         Retrofit.Builder retrofitBuilder = new Retrofit.Builder()
                 .client(clientBuilder.build())
@@ -164,23 +137,6 @@ public class RetrofitAdapter {
         }
     }
 
-    private static Response checkImeiOrOaid(Interceptor.Chain chain) throws IOException {
-        return proceedRequest(chain, chain1 -> {
-            HttpUrl.Builder builder = chain1.request().url().newBuilder();
-            HttpUrl httpUrl = chain1.request().url();
-            if (!httpUrl.host().contains("feed") || httpUrl.encodedPath().equals("/api/v4/uid/get")) {
-                return builder.build();
-            }
-            String imei = httpUrl.queryParameter("imei");
-            String oaid = httpUrl.queryParameter("oaid");
-            if (!TextUtils.isEmpty(imei) || !TextUtils.isEmpty(oaid)) {
-                return builder.build();
-            }
-            builder.removeAllQueryParameters("imei");
-            builder.addQueryParameter("imei", MD5Utils.md5_32(DeviceWrapperUtils.getUniqueID()));
-            return builder.build();
-        });
-    }
 
     private static Response appendFormBody(Class<?> apiClass, Interceptor.Chain chain)
             throws IOException {
@@ -203,9 +159,6 @@ public class RetrofitAdapter {
         for (int i = 0; i < size; i++) {
             String name = formBody.name(i);
             String value = formBody.value(i);
-            if (name == null || value == null) {
-                continue;
-            }
             if (Objects.equals(pair.first, name)) {
                 try {
                     builder.add(name, pair.second.apply(value));

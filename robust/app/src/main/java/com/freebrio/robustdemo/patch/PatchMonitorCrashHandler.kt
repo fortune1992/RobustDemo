@@ -1,13 +1,12 @@
-package com.bikan.reading.patch
+package com.freebrio.robustdemo.patch
 
 import android.content.Intent
 import android.os.Process
 import android.text.TextUtils
-
-import com.xiaomi.bn.utils.coreutils.ApplicationStatus
-import com.xiaomi.bn.utils.coreutils.FileUtils
-import com.xiaomi.bn.utils.coreutils.ThrowableUtil
-import com.xiaomi.bn.utils.logger.Logger
+import android.util.Log
+import com.freebrio.robustdemo.MyApplication
+import com.freebrio.robustdemo.util.FileUtils
+import com.freebrio.robustdemo.util.ThrowableUtils
 
 import java.io.File
 
@@ -15,7 +14,7 @@ object PatchMonitorCrashHandler : Thread.UncaughtExceptionHandler {
 
     private var defaultCrashHandler: Thread.UncaughtExceptionHandler? = null
 
-    private val crashFolder = File(ApplicationStatus.getApplicationContext().filesDir, "patchCrash")
+    private val crashFolder = File(MyApplication.getContext().filesDir, "patchCrash")
 
     fun init() {
         defaultCrashHandler = Thread.getDefaultUncaughtExceptionHandler()
@@ -25,8 +24,8 @@ object PatchMonitorCrashHandler : Thread.UncaughtExceptionHandler {
     override fun uncaughtException(t: Thread, e: Throwable) {
         if (!repeatCrash(e)) {
             saveLastThrowable(e)
-            val intent = Intent(ApplicationStatus.getApplicationContext(), PatchCheckerService::class.java)
-            ApplicationStatus.getApplicationContext().startService(intent)
+            val intent = Intent(MyApplication.getContext(), PatchCheckerService::class.java)
+            PatchCheckerService.enqueueWork(MyApplication.getContext(), intent)
         }
         if (defaultCrashHandler != null) {
             defaultCrashHandler!!.uncaughtException(t, e)
@@ -42,13 +41,13 @@ object PatchMonitorCrashHandler : Thread.UncaughtExceptionHandler {
                 val timeThrowable = lastThrowable.split("#".toRegex(), 2).toTypedArray()
                 val lastTime = java.lang.Long.parseLong(timeThrowable[0])
                 if (System.currentTimeMillis() - lastTime < 5 * 60 * 1000) {
-                    if (TextUtils.equals(ThrowableUtil.throwableToString(throwable), timeThrowable[1])) {
+                    if (TextUtils.equals(ThrowableUtils.getFullStackTrace(throwable), timeThrowable[1])) {
                         return true
                     }
                 }
             }
         } catch (e: Exception) {
-            Logger.e("check repeatCrash error!!" + e.message)
+            Log.e(TAG, "check repeatCrash error!!" + e.message)
         }
 
         return false
@@ -61,7 +60,7 @@ object PatchMonitorCrashHandler : Thread.UncaughtExceptionHandler {
 
     private fun getThrowableString(throwable: Throwable): String {
         val time = System.currentTimeMillis()
-        val s = ThrowableUtil.throwableToString(throwable)
+        val s = ThrowableUtils.getFullStackTrace(throwable)
         return "$time#$s"
     }
 }

@@ -1,34 +1,32 @@
-package com.bikan.base.net;
+package com.freebrio.robustdemo.network;
 
-import com.bikan.base.utils.NetPreviewUtils;
 
+import java.util.HashMap;
 import java.util.Map;
 
 import okhttp3.Dispatcher;
 import okhttp3.Request;
 
-public class GeneralServiceInfo extends ServiceInfo {
+public class GeneralServiceInfo implements IServiceInfo {
     private static final Dispatcher GENERAL_DISPATCHER = new Dispatcher();
 
     @Override
     public String getBaseUrl() {
-        if (NetPreviewUtils.isQAEnv()) {
-            return "http://feed-test.browser.miui.com";
-        } else if (NetPreviewUtils.isNetPreview()) {
-            return "http://feed.dev.browser.miui.com";
-        } else {
-            return "https://feed.browser.miui.com";
-        }
+        return "https://feed.browser.miui.com";
     }
 
     @Override
     public Map<String, String> getCommonParameters() {
-        return getBaseCommonParameters();
+        return new HashMap<>();
     }
 
     @Override
     public Map<String, String> getExtraParameters(Request request) {
         return getSign(request);
+    }
+
+    private Map<String, String> getSign(Request request) {
+        return new HashMap<>();
     }
 
     @Override

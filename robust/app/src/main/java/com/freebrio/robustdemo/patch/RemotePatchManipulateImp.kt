@@ -1,22 +1,14 @@
-package com.bikan.reading.patch
+package com.freebrio.robustdemo.patch
 
 import android.annotation.SuppressLint
 import android.content.Context
 import android.text.TextUtils
-import com.bikan.base.manager.NewsSchedulers
-import com.bikan.base.model.ModeBase
-import com.bikan.reading.model.PatchInfo
-import com.bikan.reading.net.RetrofitServiceFactory
-import com.bikan.reading.net.UploadLogProxy
-import com.meituan.robust.RobustApkHashUtils
-import com.xiaomi.bn.utils.coreutils.CloseUtils
-import com.xiaomi.bn.utils.coreutils.DeviceUtils
-import com.xiaomi.bn.utils.coreutils.FileUtils
-import com.xiaomi.bn.utils.coreutils.GsonUtils
-import com.xiaomi.bn.utils.coreutils.ZipUtils
-import com.xiaomi.bn.utils.encrypt.AESUtils
-import com.xiaomi.bn.utils.encrypt.MD5Utils
-import io.reactivex.functions.Consumer
+import android.util.Log
+import com.freebrio.robustdemo.model.ModeBase
+import com.freebrio.robustdemo.model.PatchInfo
+import com.freebrio.robustdemo.network.RetrofitServiceFactory
+import com.freebrio.robustdemo.util.*
+import io.reactivex.schedulers.Schedulers
 import java.io.File
 import java.io.FileOutputStream
 import java.io.IOException
@@ -38,13 +30,13 @@ class RemotePatchManipulateImp : AbsPatchManipulate() {
      */
     @SuppressLint("CheckResult")
     override fun fetchPatchList(context: Context, consumer: AppPatchExecutor.FetchResultConsumer) {
-        RetrofitServiceFactory.getCommonService().getPatchInfo(KEY_PATCH_PREFIX + DeviceUtils.getAppVersionCode() + "_" + RobustApkHashUtils.readRobustApkHash(context))
+        RetrofitServiceFactory.getCommonService().getPatchInfo(KEY_PATCH_PREFIX + DeviceUtils.getAppVersionCode())
             .doOnNext {
                 if (it.body() == null) {
                     PatchManager.clearPatch()
                 }
             }
-            .observeOn(NewsSchedulers.IO)
+            .observeOn(Schedulers.io())
             .map<ModeBase<String>> { it.body() }
             .map<PatchInfo> {
                 if (it.data.isNullOrEmpty()) {
@@ -65,8 +57,10 @@ class RemotePatchManipulateImp : AbsPatchManipulate() {
                     }
                 }
             }
-            .subscribe(Consumer<PatchInfo> { },
-                Consumer { UploadLogProxy.uploadException(it, UploadLogProxy.EXCEPTION_MODULE_TRY_CATCH, "fetchPatch") })
+            .subscribe({ }, {
+                Log.e(TAG, "get patch error")
+                it.printStackTrace()
+            })
     }
 
     override fun verifyPatch(context: Context, patch: AppPatch): Boolean {
@@ -81,7 +75,7 @@ class RemotePatchManipulateImp : AbsPatchManipulate() {
      * @return you may download your patches here, you can check whether patch is in the phone
      */
     override fun ensurePatchExist(patch: AppPatch): Boolean {
-        return File(patch.localPath).exists()
+        return patch.localPath?.let { File(it).exists() } == true
     }
 
     private fun checkSamePatch(patchInfo: PatchInfo): Boolean {
@@ -108,7 +102,7 @@ class RemotePatchManipulateImp : AbsPatchManipulate() {
                 if (MD5Utils.getFileMD5(patchFile) == patchInfo.hash) {
                     PatchManager.updatePatchInfo(patchInfo.hash, patchInfo.hash, patchInfo.appInit)
                     // 解压缩
-                    ZipUtils.unZipFile(patchFile.path, getPatchDirName())
+                    ZipUtils.unzipFile(patchFile.path, getPatchDirName())
                     val patch = AppPatch()
                     patch.md5 = patchInfo.hash
                     patch.name = getPatchName()
@@ -118,7 +112,7 @@ class RemotePatchManipulateImp : AbsPatchManipulate() {
                     patches.add(patch)
                     consumer.accept(patches)
                 }
-                FileUtils.deleteFile(patchFile)
+                FileUtils.delete(patchFile)
             } catch (e: IOException) {
                 e.printStackTrace()
                 setPatchHash(null)

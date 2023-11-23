@@ -1,9 +1,7 @@
-package com.bikan.reading.patch
+package com.freebrio.robustdemo.patch
 
-import com.xiaomi.bn.utils.base.KeepAll
 import java.io.File
 
-@KeepAll
 data class AppPatch(
     var patchesInfoImplClassFullName: String? = null,
     var name: String? = null,

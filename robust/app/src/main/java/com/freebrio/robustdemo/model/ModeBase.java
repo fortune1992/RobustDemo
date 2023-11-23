@@ -1,4 +1,4 @@
-package com.bikan.base.model;
+package com.freebrio.robustdemo.model;
 
 public class ModeBase<T> {
     private int status;

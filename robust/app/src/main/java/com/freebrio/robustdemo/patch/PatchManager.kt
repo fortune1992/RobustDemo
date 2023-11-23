@@ -1,7 +1,7 @@
-package com.bikan.reading.patch
+package com.freebrio.robustdemo.patch
 
-import com.xiaomi.bn.utils.coreutils.ApplicationStatus
-import com.xiaomi.bn.utils.coreutils.FileUtils
+import com.freebrio.robustdemo.MyApplication
+import com.freebrio.robustdemo.util.FileUtils
 import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.launch
 
@@ -29,15 +29,15 @@ object PatchManager {
     }
 
     fun requestPatch() {
-        AppPatchExecutor(ApplicationStatus.getApplicationContext(), RemotePatchManipulateImp(), RobustCallbackImp()).asyncRun()
+        AppPatchExecutor(MyApplication.getContext(), RemotePatchManipulateImp(), RobustCallbackImp()).asyncRun()
     }
 
     private fun loadPatch() {
-        AppPatchExecutor(ApplicationStatus.getApplicationContext(), LocalPatchManipulateImp(), RobustCallbackImp()).run()
+        AppPatchExecutor(MyApplication.getContext(), LocalPatchManipulateImp(), RobustCallbackImp()).run()
     }
 
     fun clearPatch() {
-        FileUtils.deleteDir(getPatchRootDir())
+        FileUtils.delete(getPatchRootDir())
         clearAll()
     }
 

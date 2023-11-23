@@ -1,7 +1,7 @@
-package com.bikan.reading.patch
+package com.freebrio.robustdemo.patch
 
-import com.bikan.base.utils.OkHttpUtil
-import com.xiaomi.bn.utils.coreutils.FileUtils
+import com.freebrio.robustdemo.util.FileUtils
+import com.freebrio.robustdemo.util.OkHttpUtil
 import okhttp3.Request
 import java.io.File
 
@@ -9,7 +9,7 @@ fun downloadFileSync(url: String, file: File): Boolean {
     try {
         val response = OkHttpUtil.getInstance().defaultOkHttpClient.newCall(Request.Builder().url(url).build()).execute()
         if (response.isSuccessful) {
-            FileUtils.copyToFile(response.body()?.byteStream(), file)
+            FileUtils.writeFileFromIS(file, response.body?.byteStream())
             return true
         }
     } catch (e: Throwable) {

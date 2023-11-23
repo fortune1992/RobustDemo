@@ -1,10 +1,8 @@
 <component name="libraryTable">
   <library name="Gradle: com.meituan.robust:robust:0.4.99@aar">
     <CLASSES>
-      <root url="file://$USER_HOME$/.gradle/caches/transforms-2/files-2.1/992797fe15a2876d18371f4c1e49a5dc/jetified-robust-0.4.99/res" />
-      <root url="jar://$USER_HOME$/.gradle/caches/transforms-2/files-2.1/b18ee3ea19cfa54d07be45c79f7727c6/jetified-robust-0.4.99/jars/classes.jar!/" />
-      <root url="file://$USER_HOME$/.gradle/caches/transforms-2/files-2.1/b18ee3ea19cfa54d07be45c79f7727c6/jetified-robust-0.4.99/AndroidManifest.xml" />
-      <root url="file://$USER_HOME$/.gradle/caches/transforms-2/files-2.1/b18ee3ea19cfa54d07be45c79f7727c6/jetified-robust-0.4.99/res" />
+      <root url="jar://$USER_HOME$/.gradle/caches/transforms-2/files-2.1/3058d9a6d38da9afc08a8a662b9ddf51/jetified-robust-0.4.99/jars/classes.jar!/" />
+      <root url="file://$USER_HOME$/.gradle/caches/transforms-2/files-2.1/3058d9a6d38da9afc08a8a662b9ddf51/jetified-robust-0.4.99/AndroidManifest.xml" />
     </CLASSES>
     <JAVADOC />
     <SOURCES>

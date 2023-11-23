@@ -1,11 +1,13 @@
 package com.freebrio.robustdemo
 
 import android.Manifest
+import android.content.Intent
 import android.os.Bundle
 import android.util.Log
 import android.view.View
 import android.widget.TextView
 import androidx.appcompat.app.AppCompatActivity
+import com.freebrio.robustdemo.patch.PatchCheckerService
 import com.meituan.robust.Patch
 import com.meituan.robust.PatchExecutor
 import com.meituan.robust.RobustCallBack
@@ -22,6 +24,7 @@ class MainActivity : AppCompatActivity() {
         setContentView(R.layout.activity_main)
         textView = findViewById(R.id.content_tv)
 
+        val value = 2/ 0
         val file =
             File(externalCacheDir?.absolutePath + File.separator + "robust" + File.separator + "patch ")
         if (!file.exists()) {

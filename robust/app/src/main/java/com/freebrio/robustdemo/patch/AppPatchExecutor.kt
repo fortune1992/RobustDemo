@@ -1,11 +1,11 @@
-package com.bikan.reading.patch
+package com.freebrio.robustdemo.patch
 
 import android.content.Context
 import android.text.TextUtils
+import androidx.core.util.Consumer
 import com.meituan.robust.ChangeQuickRedirect
 import com.meituan.robust.PatchesInfo
 import dalvik.system.DexClassLoader
-import io.reactivex.functions.Consumer
 import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.launch
 import java.io.File
